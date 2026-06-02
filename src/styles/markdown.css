@@ -1,0 +1,177 @@
+.markdown-shell {
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: plaintext;
+  max-width: 900px;
+  margin: 0 auto;
+  font-size: 1.06rem;
+  line-height: 2;
+  color: inherit;
+}
+
+.markdown-shell h1,
+.markdown-shell h2,
+.markdown-shell h3,
+.markdown-shell h4,
+.markdown-shell h5,
+.markdown-shell h6 {
+  margin-top: 2.4rem;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  font-weight: 700;
+  color: inherit;
+}
+
+.markdown-shell h1 {
+  font-size: 2.1rem;
+}
+
+.markdown-shell h2 {
+  font-size: 1.65rem;
+}
+
+.markdown-shell h3 {
+  font-size: 1.35rem;
+}
+
+.markdown-shell p,
+.markdown-shell ul,
+.markdown-shell ol,
+.markdown-shell blockquote,
+.markdown-shell table,
+.markdown-shell hr {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-shell ul,
+.markdown-shell ol {
+  padding-right: 1.5rem;
+}
+
+.markdown-shell li > ul,
+.markdown-shell li > ol {
+  margin-top: 0.5rem;
+}
+
+.markdown-shell a {
+  color: #238f78;
+  unicode-bidi: isolate;
+  word-break: break-word;
+}
+
+.dark .markdown-shell a {
+  color: #7cd5bf;
+}
+
+.markdown-shell img {
+  max-width: 100%;
+  border-radius: 1.5rem;
+}
+
+.markdown-shell blockquote {
+  border-right: 4px solid rgba(61, 184, 155, 0.5);
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  background: rgba(61, 184, 155, 0.08);
+}
+
+.markdown-shell code {
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.markdown-shell :not(pre) > code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+  padding: 0.12rem 0.45rem;
+  border-radius: 0.6rem;
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  font-size: 0.92em;
+}
+
+.dark .markdown-shell :not(pre) > code {
+  background: rgba(148, 163, 184, 0.15);
+  color: #e2e8f0;
+}
+
+.markdown-shell pre {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
+  overflow-x: auto;
+  border-radius: 1.5rem;
+  padding: 1.25rem;
+  background: #111827;
+  color: #e5eef7;
+}
+
+.markdown-shell pre code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  display: block;
+}
+
+.code-block {
+  position: relative;
+}
+
+.copy-button {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.dark .table-wrap {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.markdown-shell table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+}
+
+.markdown-shell th,
+.markdown-shell td {
+  padding: 0.85rem 1rem;
+  text-align: right;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.dark .markdown-shell th,
+.dark .markdown-shell td {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.markdown-shell th {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.markdown-shell hr {
+  border: 0;
+  border-top: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.dark .markdown-shell hr {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}

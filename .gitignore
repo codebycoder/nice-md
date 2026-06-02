@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Emitted config (source: vite.config.ts, tailwind.config.ts)
+vite.config.js
+vite.config.d.ts
+tailwind.config.js
+tailwind.config.d.ts
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Package managers (project uses pnpm)
+package-lock.json
+yarn.lock
+
+# Vite
+.vite/
+
+# Editor / IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Optional tooling
+coverage/
+*.tgz
+.eslintcache
