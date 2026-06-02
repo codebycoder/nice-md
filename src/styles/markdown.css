@@ -1,12 +1,21 @@
 .markdown-shell {
-  direction: rtl;
-  text-align: right;
-  unicode-bidi: plaintext;
-  max-width: 900px;
+  text-align: start;
+  max-width: var(--md-content-width, 900px);
   margin: 0 auto;
-  font-size: 1.06rem;
-  line-height: 2;
-  color: inherit;
+  font-family: var(--md-font-family, 'Vazirmatn', sans-serif);
+  font-size: var(--md-font-size, 1.06rem);
+  font-weight: var(--md-font-weight, 400);
+  line-height: var(--md-line-height, 2);
+  letter-spacing: var(--md-letter-spacing, normal);
+  color: var(--md-text-color, inherit);
+}
+
+.markdown-shell--rtl {
+  direction: rtl;
+}
+
+.markdown-shell--ltr {
+  direction: ltr;
 }
 
 .markdown-shell h1,
@@ -15,23 +24,27 @@
 .markdown-shell h4,
 .markdown-shell h5,
 .markdown-shell h6 {
-  margin-top: 2.4rem;
-  margin-bottom: 1rem;
+  margin-top: calc(2.4rem * var(--md-paragraph-spacing, 1));
+  margin-bottom: calc(1rem * var(--md-paragraph-spacing, 1));
   line-height: 1.6;
   font-weight: 700;
-  color: inherit;
+  color: var(--md-heading-color, var(--md-text-color, inherit));
 }
 
 .markdown-shell h1 {
-  font-size: 2.1rem;
+  font-size: calc(2.1rem * var(--md-heading-scale, 1));
 }
 
 .markdown-shell h2 {
-  font-size: 1.65rem;
+  font-size: calc(1.65rem * var(--md-heading-scale, 1));
 }
 
 .markdown-shell h3 {
-  font-size: 1.35rem;
+  font-size: calc(1.35rem * var(--md-heading-scale, 1));
+}
+
+.markdown-shell h4 {
+  font-size: calc(1.15rem * var(--md-heading-scale, 1));
 }
 
 .markdown-shell p,
@@ -40,28 +53,30 @@
 .markdown-shell blockquote,
 .markdown-shell table,
 .markdown-shell hr {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  margin-top: calc(1rem * var(--md-paragraph-spacing, 1));
+  margin-bottom: calc(1rem * var(--md-paragraph-spacing, 1));
 }
 
 .markdown-shell ul,
 .markdown-shell ol {
-  padding-right: 1.5rem;
+  padding-inline-start: 1.5rem;
 }
 
 .markdown-shell li > ul,
 .markdown-shell li > ol {
-  margin-top: 0.5rem;
+  margin-top: calc(0.5rem * var(--md-paragraph-spacing, 1));
 }
 
 .markdown-shell a {
-  color: #238f78;
+  color: var(--md-link-color, #238f78);
+  text-decoration: var(--md-link-underline, none);
+  text-underline-offset: 0.15em;
   unicode-bidi: isolate;
   word-break: break-word;
 }
 
 .dark .markdown-shell a {
-  color: #7cd5bf;
+  color: var(--md-link-color, #7cd5bf);
 }
 
 .markdown-shell img {
@@ -70,10 +85,15 @@
 }
 
 .markdown-shell blockquote {
-  border-right: 4px solid rgba(61, 184, 155, 0.5);
+  border-inline-start: 4px solid
+    var(--md-blockquote-color, rgba(61, 184, 155, 0.5));
   padding: 0.75rem 1rem;
   border-radius: 1rem;
-  background: rgba(61, 184, 155, 0.08);
+  background: color-mix(
+    in srgb,
+    var(--md-blockquote-color, #3db89b) 8%,
+    transparent
+  );
 }
 
 .markdown-shell code {
@@ -120,11 +140,16 @@
 
 .copy-button {
   position: absolute;
-  top: 0.9rem;
-  right: 0.9rem;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
   border: 0;
-  border-radius: 999px;
-  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  padding: 0;
   background: rgba(255, 255, 255, 0.12);
   color: #f8fafc;
   cursor: pointer;
@@ -153,7 +178,7 @@
 .markdown-shell th,
 .markdown-shell td {
   padding: 0.85rem 1rem;
-  text-align: right;
+  text-align: start;
   vertical-align: top;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }

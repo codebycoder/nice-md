@@ -12,6 +12,7 @@
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.2.6",
     "@fontsource/vazirmatn": "^5.2.6",
+    "lucide-react": "^1.17.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",

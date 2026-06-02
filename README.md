@@ -1,38 +1,66 @@
 # Nice MD
 
-Persian-first Markdown reader for technical documentation with mixed RTL/LTR content.
+Nice MD is a lightweight Markdown reader focused on Persian and mixed RTL/LTR technical content.
+
+## Overview
+
+This project provides a clean reading experience for Markdown documentation with:
+
+- Proper RTL-aware layout for Persian text
+- Readable code and technical token styling
+- Safe and modern Markdown rendering
 
 ## Features
 
-- RTL-optimized Markdown rendering
-- Persian typography with `Vazirmatn`
-- Technical tokens styled with `JetBrains Mono`
-- Safe Markdown rendering with `react-markdown`, `remark-gfm`, and `rehype-sanitize`
-- Local file open, drag and drop, reload, and filename display
-- Search with match count, highlight, next, and previous
-- Auto-generated table of contents with active section tracking
-- Light and dark themes with persistence
-- Copy code, reading progress, fullscreen mode, collapsible sidebar, and keyboard shortcuts
+- Open local Markdown files
+- Drag and drop file support
+- In-page search with match count and navigation
+- Auto-generated table of contents
+- Light and dark themes
+- Copy code blocks
+- Reading progress tracking
+- Fullscreen mode
+- Collapsible sidebar
+- Keyboard shortcuts
 
-## Install
+## Tech Stack
+
+- React
+- TypeScript
+- `react-markdown`
+- `remark-gfm`
+- `rehype-sanitize`
+
+## Getting Started
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-If `pnpm` is not usable in your shell because of a parent workspace toolchain override, `npm install` will also install the dependencies for this project, but the project configuration itself is still pnpm-ready.
+If `pnpm` is unavailable in your environment, you can use:
+
+```bash
+npm install
+npm run dev
+```
 
 ## Keyboard Shortcuts
 
-- `Ctrl/Cmd + O`: open file
-- `Ctrl/Cmd + F`: focus search
-- `Ctrl/Cmd + R`: reload current file
-- `T`: toggle theme
-- `B`: collapse or expand sidebar
-- `F`: toggle fullscreen
+- `Ctrl/Cmd + O` - Open file
+- `Ctrl/Cmd + F` - Open find bar
+- `Ctrl/Cmd + R` - Reload current file
+- `Ctrl/Cmd + G` - Next search match (when find is open)
+- `Ctrl/Cmd + Shift + G` - Previous search match
+- `Enter` / `Shift + Enter` - Next / previous match (when find is open)
+- `Esc` - Close find bar
+- `?` - Show keyboard shortcuts
+- `T` - Toggle theme
+- `B` - Toggle sidebar
+- `F` - Toggle fullscreen
 
 ## Notes
 
-- Last opened file metadata is persisted locally, but browsers may require you to reselect the file after a full refresh before it can be read again.
-- The smart normalizer only changes content in memory for rendering. It does not modify the original file.
+- Last opened file metadata is stored locally in the browser.
+- Some browsers may ask you to reselect local files after a full refresh.
+- Normalization is applied only in memory and does not change original file content.

@@ -1,64 +1,105 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppHeader } from '../components/AppHeader';
+import { DocumentTabBar } from '../components/DocumentTabBar';
+import { DocumentTabPanel } from '../components/DocumentTabPanel';
+import { useToast } from '../context/ToastContext';
 import { DropZone } from '../components/DropZone';
 import { EmptyState } from '../components/EmptyState';
-import { MarkdownRenderer } from '../components/MarkdownRenderer';
+import { KeyboardShortcutsModal } from '../components/KeyboardShortcutsModal';
+import { MarkdownSettingsPanel } from '../components/MarkdownSettingsPanel';
 import { TocSidebar } from '../components/TocSidebar';
-import { SAMPLE_MARKDOWN } from '../constants/sampleMarkdown';
 import { STORAGE_KEYS } from '../constants/storage';
 import { useActiveHeading } from '../hooks/useActiveHeading';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { useDocumentTabs } from '../hooks/useDocumentTabs';
 import { useFullscreen } from '../hooks/useFullscreen';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useReadingProgress } from '../hooks/useReadingProgress';
+import { useMarkdownSettings } from '../hooks/useMarkdownSettings';
 import { useTheme } from '../hooks/useTheme';
-import {
-  openMarkdownFile,
-  persistLastFileMeta,
-  readDroppedMarkdownFile,
-  readPersistedLastFileMeta,
-  reloadMarkdownFile,
-} from '../services/fileService';
-import type { LoadedFileState } from '../types';
+import { readPersistedLastFileMeta } from '../services/fileService';
+import { getArticleId } from '../types';
 import { extractToc } from '../utils/extractToc';
 import { normalizeMarkdown } from '../utils/normalizeMarkdown';
-import { countSearchMatches } from '../utils/search';
+import {
+  activateSearchMatchAt,
+  navigateSearchMatch,
+} from '../utils/searchNavigation';
 
 const READER_ROOT_ID = 'reader-root';
-const ARTICLE_ID = 'reader-article';
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function ReaderPage() {
-  const [loadedFile, setLoadedFile] = useState<LoadedFileState>({
-    name: 'نمونه داخلی',
-    content: SAMPLE_MARKDOWN,
-    lastModified: Date.now(),
-    size: SAMPLE_MARKDOWN.length,
-    source: 'sample',
-  });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeMatchIndex, setActiveMatchIndex] = useState(-1);
   const [dragActive, setDragActive] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => localStorage.getItem(STORAGE_KEYS.sidebarCollapsed) === 'true',
   );
-  const [persistedFileMeta, setPersistedFileMeta] = useState(() =>
-    readPersistedLastFileMeta(),
-  );
-  const [reloadMessage, setReloadMessage] = useState<string>('');
+  const [persistedFileMeta] = useState(() => readPersistedLastFileMeta());
+  const [markdownSettingsOpen, setMarkdownSettingsOpen] = useState(false);
+  const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
+
+  const toast = useToast();
+  const {
+    tabs,
+    activeTab,
+    activeTabId,
+    openFile,
+    openFromDropMany,
+    closeTab,
+    closeActiveTab,
+    activateTab,
+    activateRelativeTab,
+    reloadActiveTab,
+    updateActiveTabSearch,
+  } = useDocumentTabs(toast);
 
   const { theme, toggleTheme } = useTheme();
+  const { settings: markdownSettings, updateSettings, resetSettings } =
+    useMarkdownSettings();
   const { isFullscreen, toggleFullscreen } = useFullscreen(READER_ROOT_ID);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const activeMatchIndexRef = useRef(-1);
+
+  const searchQuery = activeTab?.search.query ?? '';
+  const searchOpen = activeTab?.search.open ?? false;
+  const activeMatchIndex = activeTab?.search.activeMatchIndex ?? -1;
+  const totalMatches = activeTab?.search.totalMatches ?? 0;
+
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, SEARCH_DEBOUNCE_MS);
 
   const normalizedMarkdown = useMemo(
-    () => normalizeMarkdown(loadedFile.content),
-    [loadedFile.content],
+    () => normalizeMarkdown(activeTab?.file.content ?? ''),
+    [activeTab?.file.content],
   );
   const toc = useMemo(() => extractToc(normalizedMarkdown), [normalizedMarkdown]);
   const activeHeadingId = useActiveHeading(toc);
-  const progress = useReadingProgress(ARTICLE_ID);
-  const totalMatches = useMemo(
-    () => countSearchMatches(normalizedMarkdown, searchQuery),
-    [normalizedMarkdown, searchQuery],
+  const articleId = activeTabId ? getArticleId(activeTabId) : '';
+  const progress = useReadingProgress(articleId);
+
+  useEffect(() => {
+    activeMatchIndexRef.current = activeMatchIndex;
+  }, [activeMatchIndex, activeTabId]);
+
+  const handleSearchScopeChange = useCallback(
+    (count: number) => {
+      if (!activeTabId) {
+        return;
+      }
+
+      const root = document.getElementById(getArticleId(activeTabId));
+      const index = count > 0 ? 0 : -1;
+
+      activeMatchIndexRef.current = index;
+      updateActiveTabSearch({
+        totalMatches: count,
+        activeMatchIndex: index,
+      });
+
+      if (root && index === 0) {
+        activateSearchMatchAt(root, 0);
+      }
+    },
+    [activeTabId, updateActiveTabSearch],
   );
 
   useEffect(() => {
@@ -69,46 +110,18 @@ export function ReaderPage() {
   }, [sidebarCollapsed]);
 
   useEffect(() => {
-    setActiveMatchIndex(totalMatches > 0 ? 0 : -1);
-  }, [loadedFile.content, totalMatches]);
-
-  useEffect(() => {
-    setPersistedFileMeta(readPersistedLastFileMeta());
-  }, [loadedFile]);
-
-  const openFile = async () => {
-    const file = await openMarkdownFile();
-
-    if (!file) {
+    if (!searchOpen) {
       return;
     }
 
-    setLoadedFile(file);
-    persistLastFileMeta(file);
-    setReloadMessage('');
-  };
-
-  const reloadFile = async () => {
-    const reloaded = await reloadMarkdownFile(loadedFile);
-
-    if (!reloaded) {
-      setReloadMessage(
-        'بازخوانی مستقیم برای این فایل ممکن نبود. لطفا فایل را دوباره انتخاب کنید.',
-      );
+    const input = searchInputRef.current;
+    if (!input) {
       return;
     }
 
-    setLoadedFile(reloaded);
-    persistLastFileMeta(reloaded);
-    setReloadMessage('فایل با موفقیت دوباره بارگذاری شد.');
-  };
-
-  const onDropFile = async (file: File) => {
-    const dropped = await readDroppedMarkdownFile(file);
-    setLoadedFile(dropped);
-    persistLastFileMeta(dropped);
-    setReloadMessage('');
-  };
+    input.focus();
+    input.select();
+  }, [searchOpen, activeTabId]);
 
   const jumpToHeading = (id: string) => {
     document.getElementById(id)?.scrollIntoView({
@@ -117,44 +130,83 @@ export function ReaderPage() {
     });
   };
 
-  const goToMatch = (direction: 'next' | 'previous') => {
-    if (totalMatches === 0) {
-      setActiveMatchIndex(-1);
-      return;
-    }
-
-    setActiveMatchIndex((current) => {
-      if (current < 0) {
-        return 0;
-      }
-
-      if (direction === 'next') {
-        return (current + 1) % totalMatches;
-      }
-
-      return (current - 1 + totalMatches) % totalMatches;
-    });
+  const openSearch = () => {
+    updateActiveTabSearch({ open: true });
   };
 
-  useKeyboardShortcuts({
-    openFile,
-    focusSearch: () => searchInputRef.current?.focus(),
-    reloadFile: () => {
-      void reloadFile();
+  const closeSearch = () => {
+    updateActiveTabSearch({ open: false });
+    searchInputRef.current?.blur();
+  };
+
+  const goToMatch = useCallback(
+    (direction: 'next' | 'previous') => {
+      if (!activeTabId) {
+        return;
+      }
+
+      const root = document.getElementById(getArticleId(activeTabId));
+      if (!root) {
+        return;
+      }
+
+      const result = navigateSearchMatch(
+        root,
+        activeMatchIndexRef.current,
+        direction,
+      );
+
+      if (!result) {
+        return;
+      }
+
+      activeMatchIndexRef.current = result.index;
+      updateActiveTabSearch({
+        totalMatches: result.count,
+        activeMatchIndex: result.index,
+      });
     },
+    [activeTabId, updateActiveTabSearch],
+  );
+
+  useKeyboardShortcuts({
+    openFile: () => {
+      void openFile();
+    },
+    openFileNewTab: () => {
+      void openFile({ newTab: true });
+    },
+    openSearch,
+    closeSearch,
+    searchNext: () => goToMatch('next'),
+    searchPrevious: () => goToMatch('previous'),
+    reloadFile: () => {
+      void reloadActiveTab();
+    },
+    closeTab: closeActiveTab,
+    activateNextTab: () => activateRelativeTab(1),
+    activatePreviousTab: () => activateRelativeTab(-1),
     toggleTheme,
     toggleSidebar: () => setSidebarCollapsed((current) => !current),
     toggleFullscreen: () => {
       void toggleFullscreen();
     },
+    toggleShortcutsModal: () => setShortcutsModalOpen((current) => !current),
+    closeShortcutsModal: () => setShortcutsModalOpen(false),
+    isSearchOpen: searchOpen,
+    isShortcutsModalOpen: shortcutsModalOpen,
+    hasActiveTab: Boolean(activeTab),
   });
 
   return (
     <DropZone
       isActive={dragActive}
       onDragStateChange={setDragActive}
-      onFileDrop={(file) => {
-        void onDropFile(file);
+      onFilesDrop={(files) => {
+        void openFromDropMany(files);
+      }}
+      onInvalidFileDrop={() => {
+        toast.warning('فقط فایل‌های Markdown با پسوند .md یا .markdown پشتیبانی می‌شوند.');
       }}
     >
       <div
@@ -167,45 +219,82 @@ export function ReaderPage() {
         />
 
         <AppHeader
-          fileName={loadedFile.name}
+          fileName={activeTab?.file.name ?? 'بدون فایل'}
           theme={theme}
+          searchOpen={searchOpen}
           searchQuery={searchQuery}
           searchCount={totalMatches}
           activeMatchLabel={
             totalMatches > 0 ? `${activeMatchIndex + 1} از ${totalMatches}` : 'بدون نتیجه'
           }
-          onSearchQueryChange={setSearchQuery}
+          onOpenSearch={openSearch}
+          onCloseSearch={closeSearch}
+          onSearchQueryChange={(value) => updateActiveTabSearch({ query: value })}
           onOpenFile={() => {
             void openFile();
           }}
           onReloadFile={() => {
-            void reloadFile();
+            void reloadActiveTab();
           }}
           onToggleTheme={toggleTheme}
           onToggleSidebar={() => setSidebarCollapsed((current) => !current)}
           onToggleFullscreen={() => {
-            void toggleFullscreen();
+            void toggleFullscreen().catch(() => {
+              toast.error('فعال‌سازی حالت تمام‌صفحه ممکن نشد.');
+            });
           }}
+          onToggleMarkdownSettings={() =>
+            setMarkdownSettingsOpen((current) => !current)
+          }
+          onToggleShortcutsModal={() =>
+            setShortcutsModalOpen((current) => !current)
+          }
+          markdownSettingsOpen={markdownSettingsOpen}
+          shortcutsModalOpen={shortcutsModalOpen}
+          markdownSettingsPanel={
+            <MarkdownSettingsPanel
+              open={markdownSettingsOpen}
+              settings={markdownSettings}
+              onClose={() => setMarkdownSettingsOpen(false)}
+              onChange={updateSettings}
+              onReset={() => {
+                resetSettings();
+                toast.info('تنظیمات نمایش Markdown به حالت پیش‌فرض بازگشت.');
+              }}
+            />
+          }
           onSearchNext={() => goToMatch('next')}
           onSearchPrevious={() => goToMatch('previous')}
           searchInputRef={searchInputRef}
           sidebarCollapsed={sidebarCollapsed}
           isFullscreen={isFullscreen}
+          tabBar={
+            <DocumentTabBar
+              tabs={tabs}
+              activeTabId={activeTabId}
+              onActivate={activateTab}
+              onClose={closeTab}
+              onOpenNewTab={() => {
+                void openFile({ newTab: true });
+              }}
+            />
+          }
         />
 
         <main className="mx-auto flex max-w-[1600px] gap-6 px-4 py-6 lg:px-6">
-          <div className="hidden shrink-0 lg:block">
-            <TocSidebar
-              items={toc}
-              activeId={activeHeadingId}
-              collapsed={sidebarCollapsed}
-              onJump={jumpToHeading}
-              reminder={reloadMessage || undefined}
-            />
-          </div>
+          {activeTab ? (
+            <div className="hidden shrink-0 lg:block">
+              <TocSidebar
+                items={toc}
+                activeId={activeHeadingId}
+                collapsed={sidebarCollapsed}
+                onJump={jumpToHeading}
+              />
+            </div>
+          ) : null}
 
           <section className="min-w-0 flex-1">
-            {loadedFile.source === 'sample' ? (
+            {tabs.length === 0 ? (
               <div className="mb-6">
                 <EmptyState
                   hasPersistedFileMeta={Boolean(persistedFileMeta)}
@@ -217,24 +306,21 @@ export function ReaderPage() {
               </div>
             ) : null}
 
-            {reloadMessage ? (
-              <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-                {reloadMessage}
-              </div>
-            ) : null}
-
-            <article
-              id={ARTICLE_ID}
-              className="rounded-[2rem] border border-black/5 bg-white/80 px-4 py-8 shadow-panel backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/75 sm:px-8 lg:px-14"
-            >
-              <MarkdownRenderer
-                content={normalizedMarkdown}
-                searchQuery={searchQuery}
-                activeMatchIndex={activeMatchIndex}
+            {activeTab ? (
+              <DocumentTabPanel
+                tab={activeTab}
+                debouncedSearchQuery={debouncedSearchQuery}
+                markdownSettings={markdownSettings}
+                onSearchScopeChange={handleSearchScopeChange}
               />
-            </article>
+            ) : null}
           </section>
         </main>
+
+        <KeyboardShortcutsModal
+          open={shortcutsModalOpen}
+          onClose={() => setShortcutsModalOpen(false)}
+        />
       </div>
     </DropZone>
   );
