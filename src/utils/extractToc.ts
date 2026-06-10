@@ -9,6 +9,14 @@ function slugify(text: string): string {
     .replace(/\s+/g, '-');
 }
 
+export function normalizeHeadingText(text: string): string {
+  return text.replace(/[`*_~[\]]/g, '').trim();
+}
+
+export function headingSlug(text: string): string {
+  return slugify(normalizeHeadingText(text));
+}
+
 export function extractToc(markdown: string): TocItem[] {
   const lines = markdown.split('\n');
   const items: TocItem[] = [];
@@ -46,15 +54,4 @@ export function extractToc(markdown: string): TocItem[] {
   }
 
   return items;
-}
-
-export function createHeadingIdFactory() {
-  const seen = new Map<string, number>();
-
-  return (text: string) => {
-    const baseId = slugify(text);
-    const index = seen.get(baseId) ?? 0;
-    seen.set(baseId, index + 1);
-    return index === 0 ? baseId : `${baseId}-${index + 1}`;
-  };
 }

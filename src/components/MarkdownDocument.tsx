@@ -5,29 +5,13 @@ import rehypeSanitize from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
 import { buildMarkdownShellStyle } from '../constants/markdownSettings';
 import type { MarkdownSettings } from '../types';
-import { createHeadingIdFactory } from '../utils/extractToc';
+import { rehypeHeadingIds } from '../utils/rehypeHeadingIds';
 import { highlightNode } from '../utils/search';
 
 interface MarkdownDocumentProps {
   content: string;
   searchQuery: string;
   settings: MarkdownSettings;
-}
-
-function flattenText(node: ReactNode): string {
-  if (typeof node === 'string' || typeof node === 'number') {
-    return String(node);
-  }
-
-  if (Array.isArray(node)) {
-    return node.map(flattenText).join('');
-  }
-
-  if (node && typeof node === 'object' && 'props' in node) {
-    return flattenText((node as { props: { children?: ReactNode } }).props.children);
-  }
-
-  return '';
 }
 
 function CopyIcon() {
@@ -121,7 +105,10 @@ export const MarkdownDocument = memo(function MarkdownDocument({
   searchQuery,
   settings,
 }: MarkdownDocumentProps) {
-  const headingIdFor = useMemo(() => createHeadingIdFactory(), [content]);
+  const rehypePlugins = useMemo(
+    () => [rehypeSanitize, rehypeHeadingIds(content)],
+    [content],
+  );
   const matchCursor = { current: 0 };
   const renderHighlighted = (children: ReactNode) =>
     highlightNode(children, searchQuery, matchCursor);
@@ -139,38 +126,26 @@ export const MarkdownDocument = memo(function MarkdownDocument({
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeSanitize]}
+        rehypePlugins={rehypePlugins}
         components={{
-          h1: ({ children }) => {
-            const text = flattenText(children);
-            const id = headingIdFor(text);
-            return <h1 id={id}>{renderHighlighted(children)}</h1>;
-          },
-          h2: ({ children }) => {
-            const text = flattenText(children);
-            const id = headingIdFor(text);
-            return <h2 id={id}>{renderHighlighted(children)}</h2>;
-          },
-          h3: ({ children }) => {
-            const text = flattenText(children);
-            const id = headingIdFor(text);
-            return <h3 id={id}>{renderHighlighted(children)}</h3>;
-          },
-          h4: ({ children }) => {
-            const text = flattenText(children);
-            const id = headingIdFor(text);
-            return <h4 id={id}>{renderHighlighted(children)}</h4>;
-          },
-          h5: ({ children }) => {
-            const text = flattenText(children);
-            const id = headingIdFor(text);
-            return <h5 id={id}>{renderHighlighted(children)}</h5>;
-          },
-          h6: ({ children }) => {
-            const text = flattenText(children);
-            const id = headingIdFor(text);
-            return <h6 id={id}>{renderHighlighted(children)}</h6>;
-          },
+          h1: ({ children, id }) => (
+            <h1 id={typeof id === 'string' ? id : undefined}>{renderHighlighted(children)}</h1>
+          ),
+          h2: ({ children, id }) => (
+            <h2 id={typeof id === 'string' ? id : undefined}>{renderHighlighted(children)}</h2>
+          ),
+          h3: ({ children, id }) => (
+            <h3 id={typeof id === 'string' ? id : undefined}>{renderHighlighted(children)}</h3>
+          ),
+          h4: ({ children, id }) => (
+            <h4 id={typeof id === 'string' ? id : undefined}>{renderHighlighted(children)}</h4>
+          ),
+          h5: ({ children, id }) => (
+            <h5 id={typeof id === 'string' ? id : undefined}>{renderHighlighted(children)}</h5>
+          ),
+          h6: ({ children, id }) => (
+            <h6 id={typeof id === 'string' ? id : undefined}>{renderHighlighted(children)}</h6>
+          ),
           p: ({ children }) => <p>{renderHighlighted(children)}</p>,
           li: ({ children }) => <li>{renderHighlighted(children)}</li>,
           blockquote: ({ children }) => (

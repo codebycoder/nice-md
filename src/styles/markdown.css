@@ -29,6 +29,7 @@
   line-height: 1.6;
   font-weight: 700;
   color: var(--md-heading-color, var(--md-text-color, inherit));
+  scroll-margin-top: 8rem;
 }
 
 .markdown-shell h1 {

@@ -20,6 +20,7 @@ import { useTheme } from '../hooks/useTheme';
 import { readPersistedLastFileMeta } from '../services/fileService';
 import { getArticleId } from '../types';
 import { extractToc } from '../utils/extractToc';
+import { scrollToHeading } from '../utils/scrollToHeading';
 import { normalizeMarkdown } from '../utils/normalizeMarkdown';
 import {
   activateSearchMatchAt,
@@ -72,7 +73,7 @@ export function ReaderPage() {
     [activeTab?.file.content],
   );
   const toc = useMemo(() => extractToc(normalizedMarkdown), [normalizedMarkdown]);
-  const activeHeadingId = useActiveHeading(toc);
+  const { activeId: activeHeadingId, pinActiveHeading } = useActiveHeading(toc);
   const articleId = activeTabId ? getArticleId(activeTabId) : '';
   const progress = useReadingProgress(articleId);
 
@@ -124,10 +125,8 @@ export function ReaderPage() {
   }, [searchOpen, activeTabId]);
 
   const jumpToHeading = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
+    pinActiveHeading(id);
+    scrollToHeading(id);
   };
 
   const openSearch = () => {
