@@ -4,6 +4,7 @@ import {
   ChevronUp,
   FolderOpen,
   Keyboard,
+  Languages,
   Maximize,
   Minimize,
   PanelLeftClose,
@@ -32,10 +33,13 @@ interface AppHeaderProps {
   onToggleSidebar: () => void;
   onToggleFullscreen: () => void;
   onToggleMarkdownSettings: () => void;
+  onToggleTranslationPanel: () => void;
   onToggleShortcutsModal: () => void;
   markdownSettingsOpen: boolean;
+  translationPanelOpen: boolean;
   shortcutsModalOpen: boolean;
   markdownSettingsPanel: ReactNode;
+  translationPanel: ReactNode;
   onSearchNext: () => void;
   onSearchPrevious: () => void;
   searchInputRef: RefObject<HTMLInputElement | null>;
@@ -93,10 +97,13 @@ export function AppHeader(props: AppHeaderProps) {
     onToggleSidebar,
     onToggleFullscreen,
     onToggleMarkdownSettings,
+    onToggleTranslationPanel,
     onToggleShortcutsModal,
     markdownSettingsOpen,
+    translationPanelOpen,
     shortcutsModalOpen,
     markdownSettingsPanel,
+    translationPanel,
     onSearchNext,
     onSearchPrevious,
     searchInputRef,
@@ -126,6 +133,15 @@ export function AppHeader(props: AppHeaderProps) {
           <div className="flex flex-wrap items-center gap-2 overflow-visible">
             <IconButton label="باز کردن" icon={FolderOpen} onClick={onOpenFile} />
             <IconButton label="بارگذاری دوباره" icon={RefreshCw} onClick={onReloadFile} />
+            <div className="relative">
+              <IconButton
+                label={translationPanelOpen ? 'بستن ترجمه' : 'ترجمه'}
+                icon={Languages}
+                onClick={onToggleTranslationPanel}
+                pressed={translationPanelOpen}
+              />
+              {translationPanel}
+            </div>
             <div className="relative">
               <IconButton
                 label={markdownSettingsOpen ? 'بستن تنظیمات' : 'تنظیمات متن'}

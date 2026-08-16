@@ -201,3 +201,102 @@
 .dark .markdown-shell hr {
   border-top-color: rgba(255, 255, 255, 0.12);
 }
+
+.diagram-block {
+  direction: ltr;
+  margin-top: calc(1rem * var(--md-paragraph-spacing, 1));
+  margin-bottom: calc(1rem * var(--md-paragraph-spacing, 1));
+  padding: 1.25rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(148, 163, 184, 0.06);
+  overflow-x: auto;
+}
+
+.dark .diagram-block {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.mermaid-block svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.chart-block {
+  min-height: 280px;
+}
+
+.chart-block canvas {
+  max-width: 100%;
+}
+
+.diagram-block--error {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.diagram-block--error pre {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.diagram-block__label {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.dark .diagram-block__label {
+  color: #fca5a5;
+}
+
+.bilingual-pair {
+  margin-top: calc(1.25rem * var(--md-paragraph-spacing, 1));
+  margin-bottom: calc(1.25rem * var(--md-paragraph-spacing, 1));
+}
+
+.bilingual-pair--table .table-wrap {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.bilingual-pair > .bilingual-original,
+.bilingual-pair > .bilingual-translation {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.bilingual-original {
+  opacity: 0.5;
+  font-weight: 400;
+}
+
+.bilingual-original p,
+.bilingual-original li,
+.bilingual-original h1,
+.bilingual-original h2,
+.bilingual-original h3,
+.bilingual-original h4,
+.bilingual-original h5,
+.bilingual-original h6 {
+  color: inherit;
+}
+
+.bilingual-translation {
+  margin-top: calc(0.65rem * var(--md-paragraph-spacing, 1));
+  font-weight: 600;
+}
+
+.bilingual-translation p:last-child,
+.bilingual-original p:last-child {
+  margin-bottom: 0;
+}

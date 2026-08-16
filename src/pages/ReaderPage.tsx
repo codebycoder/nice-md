@@ -7,6 +7,8 @@ import { DropZone } from '../components/DropZone';
 import { EmptyState } from '../components/EmptyState';
 import { KeyboardShortcutsModal } from '../components/KeyboardShortcutsModal';
 import { MarkdownSettingsPanel } from '../components/MarkdownSettingsPanel';
+import { TranslationPanel } from '../components/TranslationPanel';
+import { TranslationLoadingOverlay } from '../components/TranslationLoadingOverlay';
 import { TocSidebar } from '../components/TocSidebar';
 import { STORAGE_KEYS } from '../constants/storage';
 import { useActiveHeading } from '../hooks/useActiveHeading';
@@ -16,6 +18,8 @@ import { useFullscreen } from '../hooks/useFullscreen';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useReadingProgress } from '../hooks/useReadingProgress';
 import { useMarkdownSettings } from '../hooks/useMarkdownSettings';
+import { useTranslation } from '../hooks/useTranslation';
+import { useTranslationSettings } from '../hooks/useTranslationSettings';
 import { useTheme } from '../hooks/useTheme';
 import { readPersistedLastFileMeta } from '../services/fileService';
 import { getArticleId } from '../types';
@@ -37,6 +41,7 @@ export function ReaderPage() {
   );
   const [persistedFileMeta] = useState(() => readPersistedLastFileMeta());
   const [markdownSettingsOpen, setMarkdownSettingsOpen] = useState(false);
+  const [translationPanelOpen, setTranslationPanelOpen] = useState(false);
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
 
   const toast = useToast();
@@ -52,11 +57,31 @@ export function ReaderPage() {
     activateRelativeTab,
     reloadActiveTab,
     updateActiveTabSearch,
+    updateActiveTabContent,
   } = useDocumentTabs(toast);
 
   const { theme, toggleTheme } = useTheme();
   const { settings: markdownSettings, updateSettings, resetSettings } =
     useMarkdownSettings();
+  const {
+    settings: translationSettings,
+    apiKey,
+    setApiKey,
+    updateSettings: updateTranslationSettings,
+  } = useTranslationSettings();
+  const {
+    isTranslating,
+    translate,
+    revert,
+    cancelTranslation,
+    canRevert,
+  } = useTranslation({
+    activeTab,
+    settings: translationSettings,
+    apiKey,
+    toast,
+    onContentUpdate: updateActiveTabContent,
+  });
   const { isFullscreen, toggleFullscreen } = useFullscreen(READER_ROOT_ID);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const activeMatchIndexRef = useRef(-1);
@@ -68,9 +93,12 @@ export function ReaderPage() {
 
   const debouncedSearchQuery = useDebouncedValue(searchQuery, SEARCH_DEBOUNCE_MS);
 
+  const contentForToc =
+    activeTab?.translation?.originalContent ?? activeTab?.file.content ?? '';
+
   const normalizedMarkdown = useMemo(
-    () => normalizeMarkdown(activeTab?.file.content ?? ''),
-    [activeTab?.file.content],
+    () => normalizeMarkdown(contentForToc),
+    [contentForToc],
   );
   const toc = useMemo(() => extractToc(normalizedMarkdown), [normalizedMarkdown]);
   const { activeId: activeHeadingId, pinActiveHeading } = useActiveHeading(toc);
@@ -245,10 +273,14 @@ export function ReaderPage() {
           onToggleMarkdownSettings={() =>
             setMarkdownSettingsOpen((current) => !current)
           }
+          onToggleTranslationPanel={() =>
+            setTranslationPanelOpen((current) => !current)
+          }
           onToggleShortcutsModal={() =>
             setShortcutsModalOpen((current) => !current)
           }
           markdownSettingsOpen={markdownSettingsOpen}
+          translationPanelOpen={translationPanelOpen}
           shortcutsModalOpen={shortcutsModalOpen}
           markdownSettingsPanel={
             <MarkdownSettingsPanel
@@ -260,6 +292,22 @@ export function ReaderPage() {
                 resetSettings();
                 toast.info('تنظیمات نمایش Markdown به حالت پیش‌فرض بازگشت.');
               }}
+            />
+          }
+          translationPanel={
+            <TranslationPanel
+              open={translationPanelOpen}
+              settings={translationSettings}
+              apiKey={apiKey}
+              canRevert={canRevert}
+              onClose={() => setTranslationPanelOpen(false)}
+              onSettingsChange={updateTranslationSettings}
+              onApiKeyChange={setApiKey}
+              onTranslate={() => {
+                setTranslationPanelOpen(false);
+                void translate();
+              }}
+              onRevert={revert}
             />
           }
           onSearchNext={() => goToMatch('next')}
@@ -310,11 +358,17 @@ export function ReaderPage() {
                 tab={activeTab}
                 debouncedSearchQuery={debouncedSearchQuery}
                 markdownSettings={markdownSettings}
+                theme={theme}
                 onSearchScopeChange={handleSearchScopeChange}
               />
             ) : null}
           </section>
         </main>
+
+        <TranslationLoadingOverlay
+          open={isTranslating}
+          onCancel={cancelTranslation}
+        />
 
         <KeyboardShortcutsModal
           open={shortcutsModalOpen}

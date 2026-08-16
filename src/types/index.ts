@@ -1,5 +1,40 @@
 export type ThemeMode = 'light' | 'dark';
 
+export type TranslationDisplayMode = 'replace' | 'bilingual';
+
+export type TranslationModelId =
+  | 'google/gemini-2.5-flash-lite'
+  | 'qwen/qwen3.5-9b'
+  | 'deepseek/deepseek-chat'
+  | 'google/gemini-3.1-flash-lite'
+  | 'openai/gpt-5-mini'
+  | 'openai/gpt-5.6-luna';
+
+export interface TranslationSettings {
+  model: TranslationModelId;
+  displayMode: TranslationDisplayMode;
+}
+
+export interface TabTranslationState {
+  originalContent: string;
+  mode: TranslationDisplayMode;
+  bilingualBlocks?: BilingualBlock[];
+}
+
+export type BilingualBlock =
+  | { type: 'code'; content: string }
+  | {
+      type: 'pair';
+      original: string;
+      translation: string;
+      kind?: 'text' | 'table';
+    };
+
+export interface TranslationProgress {
+  current: number;
+  total: number;
+}
+
 export type MarkdownDirection = 'rtl' | 'ltr';
 
 export type MarkdownFontFamilyId = 'vazirmatn' | 'system' | 'serif' | 'mono';
@@ -62,6 +97,7 @@ export interface DocumentTab {
   scrollTop: number;
   createdAt: number;
   lastActivatedAt: number;
+  translation?: TabTranslationState;
 }
 
 export function getArticleId(tabId: string): string {

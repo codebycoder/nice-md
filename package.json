@@ -12,7 +12,9 @@
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.2.6",
     "@fontsource/vazirmatn": "^5.2.6",
+    "chart.js": "^4.5.1",
     "lucide-react": "^1.17.0",
+    "mermaid": "^11.16.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",

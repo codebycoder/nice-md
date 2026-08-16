@@ -6,7 +6,7 @@ import {
   readDroppedMarkdownFile,
   reloadMarkdownFile,
 } from '../services/fileService';
-import type { DocumentTab, LoadedFileState, TabSearchState } from '../types';
+import type { DocumentTab, LoadedFileState, TabSearchState, TabTranslationState } from '../types';
 
 interface DocumentTabsState {
   tabs: DocumentTab[];
@@ -26,6 +26,7 @@ type DocumentTabsAction =
   | { type: 'TAB_FILE_REPLACED'; tabId: string; file: LoadedFileState }
   | { type: 'TAB_FILE_RELOADED'; tabId: string; file: LoadedFileState }
   | { type: 'TAB_SEARCH_UPDATED'; tabId: string; patch: Partial<TabSearchState> }
+  | { type: 'TAB_CONTENT_UPDATED'; tabId: string; content: string; translation?: TabTranslationState }
   | { type: 'TAB_SCROLL_SAVED'; tabId: string; scrollTop: number };
 
 function createEmptySearch(): TabSearchState {
@@ -145,7 +146,9 @@ function documentTabsReducer(
       return {
         ...state,
         tabs: state.tabs.map((tab) =>
-          tab.id === action.tabId ? { ...tab, file: action.file } : tab,
+          tab.id === action.tabId
+            ? { ...tab, file: action.file, translation: undefined }
+            : tab,
         ),
       };
 
@@ -164,6 +167,22 @@ function documentTabsReducer(
         ...state,
         tabs: state.tabs.map((tab) =>
           tab.id === action.tabId ? { ...tab, scrollTop: action.scrollTop } : tab,
+        ),
+      };
+
+    case 'TAB_CONTENT_UPDATED':
+      return {
+        ...state,
+        tabs: state.tabs.map((tab) =>
+          tab.id === action.tabId
+            ? {
+                ...tab,
+                file: { ...tab.file, content: action.content },
+                translation: action.translation,
+                search: createEmptySearch(),
+                scrollTop: 0,
+              }
+            : tab,
         ),
       };
 
@@ -391,6 +410,26 @@ export function useDocumentTabs(toast: ReturnType<typeof useToast>) {
     }
   }, [activeTab, toast]);
 
+  const updateActiveTabContent = useCallback(
+    (content: string, translation?: TabTranslationState) => {
+      if (!state.activeTabId) {
+        return;
+      }
+
+      dispatch({
+        type: 'TAB_CONTENT_UPDATED',
+        tabId: state.activeTabId,
+        content,
+        translation,
+      });
+
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+      });
+    },
+    [state.activeTabId],
+  );
+
   return {
     tabs: state.tabs,
     activeTab,
@@ -404,5 +443,6 @@ export function useDocumentTabs(toast: ReturnType<typeof useToast>) {
     reloadActiveTab,
     updateTabSearch,
     updateActiveTabSearch,
+    updateActiveTabContent,
   };
 }
