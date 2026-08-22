@@ -1,5 +1,33 @@
 import { STORAGE_KEYS } from '../constants/storage';
 import type { LoadedFileState, PersistedFileMeta } from '../types';
+import {
+  convertDocxToMarkdown,
+  isDocxFile,
+  isLegacyDocFile,
+} from '../utils/docxToMarkdown';
+
+export class UnsupportedDocumentFileError extends Error {
+  readonly code: 'LEGACY_DOC' | 'UNSUPPORTED';
+
+  constructor(code: 'LEGACY_DOC' | 'UNSUPPORTED') {
+    super(code);
+    this.name = 'UnsupportedDocumentFileError';
+    this.code = code;
+  }
+}
+
+async function readFileContent(file: File): Promise<string> {
+  if (isLegacyDocFile(file.name)) {
+    throw new UnsupportedDocumentFileError('LEGACY_DOC');
+  }
+
+  if (isDocxFile(file.name)) {
+    const buffer = await file.arrayBuffer();
+    return convertDocxToMarkdown(buffer);
+  }
+
+  return file.text();
+}
 
 function toLoadedFileState(
   file: File,
@@ -29,6 +57,13 @@ export async function openMarkdownFile(): Promise<LoadedFileState | null> {
             'text/plain': ['.md'],
           },
         },
+        {
+          description: 'Word',
+          accept: {
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+              ['.docx'],
+          },
+        },
       ],
     });
 
@@ -37,14 +72,15 @@ export async function openMarkdownFile(): Promise<LoadedFileState | null> {
     }
 
     const file = await handle.getFile();
-    const content = await file.text();
+    const content = await readFileContent(file);
     return toLoadedFileState(file, content, 'picker', handle);
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.md,.markdown,text/markdown';
+    input.accept =
+      '.md,.markdown,.docx,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     input.onchange = async () => {
       const file = input.files?.[0];
       if (!file) {
@@ -52,8 +88,12 @@ export async function openMarkdownFile(): Promise<LoadedFileState | null> {
         return;
       }
 
-      const content = await file.text();
-      resolve(toLoadedFileState(file, content, 'picker'));
+      try {
+        const content = await readFileContent(file);
+        resolve(toLoadedFileState(file, content, 'picker'));
+      } catch (error) {
+        reject(error);
+      }
     };
     input.click();
   });
@@ -62,7 +102,7 @@ export async function openMarkdownFile(): Promise<LoadedFileState | null> {
 export async function readDroppedMarkdownFile(
   file: File,
 ): Promise<LoadedFileState> {
-  const content = await file.text();
+  const content = await readFileContent(file);
   return toLoadedFileState(file, content, 'drop');
 }
 
@@ -71,7 +111,7 @@ export async function reloadMarkdownFile(
 ): Promise<LoadedFileState | null> {
   if (fileState.handle) {
     const file = await fileState.handle.getFile();
-    const content = await file.text();
+    const content = await readFileContent(file);
     return toLoadedFileState(file, content, fileState.source, fileState.handle);
   }
 

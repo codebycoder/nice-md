@@ -232,8 +232,17 @@ export function ReaderPage() {
       onFilesDrop={(files) => {
         void openFromDropMany(files);
       }}
-      onInvalidFileDrop={() => {
-        toast.warning('فقط فایل‌های Markdown با پسوند .md یا .markdown پشتیبانی می‌شوند.');
+      onInvalidFileDrop={(reason) => {
+        if (reason === 'legacy-doc') {
+          toast.warning(
+            'فرمت .doc قدیمی پشتیبانی نمی‌شود. لطفاً فایل را به .docx تبدیل کنید.',
+          );
+          return;
+        }
+
+        toast.warning(
+          'فقط فایل‌های Markdown (.md) و Word (.docx) پشتیبانی می‌شوند.',
+        );
       }}
     >
       <div

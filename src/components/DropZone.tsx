@@ -1,10 +1,16 @@
 import type { DragEvent, ReactNode } from 'react';
+import {
+  isLegacyDocFile,
+  isSupportedDocumentFile,
+} from '../utils/docxToMarkdown';
+
+export type InvalidFileDropReason = 'unsupported' | 'legacy-doc';
 
 interface DropZoneProps {
   isActive: boolean;
   onDragStateChange: (value: boolean) => void;
   onFilesDrop: (files: File[]) => void;
-  onInvalidFileDrop?: () => void;
+  onInvalidFileDrop?: (reason: InvalidFileDropReason) => void;
   children: ReactNode;
 }
 
@@ -32,16 +38,18 @@ export function DropZone({
     event.preventDefault();
     onDragStateChange(false);
 
-    const markdownFiles = Array.from(event.dataTransfer.files).filter((file) =>
-      /\.(md|markdown)$/i.test(file.name),
+    const droppedFiles = Array.from(event.dataTransfer.files);
+    const supportedFiles = droppedFiles.filter((file) =>
+      isSupportedDocumentFile(file.name),
     );
 
-    if (markdownFiles.length === 0) {
-      onInvalidFileDrop?.();
+    if (supportedFiles.length === 0) {
+      const hasLegacyDoc = droppedFiles.some((file) => isLegacyDocFile(file.name));
+      onInvalidFileDrop?.(hasLegacyDoc ? 'legacy-doc' : 'unsupported');
       return;
     }
 
-    onFilesDrop(markdownFiles);
+    onFilesDrop(supportedFiles);
   };
 
   return (
@@ -54,7 +62,7 @@ export function DropZone({
       {children}
       {isActive && (
         <div className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center rounded-[2rem] border-2 border-dashed border-accent-400 bg-accent-500/10 text-center text-lg font-semibold text-accent-600 backdrop-blur-sm dark:text-accent-300">
-          فایل Markdown را اینجا رها کنید (تب جدید)
+          فایل Markdown یا Word را اینجا رها کنید (تب جدید)
         </div>
       )}
     </div>

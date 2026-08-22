@@ -5,6 +5,7 @@ import {
   persistLastFileMeta,
   readDroppedMarkdownFile,
   reloadMarkdownFile,
+  UnsupportedDocumentFileError,
 } from '../services/fileService';
 import type { DocumentTab, LoadedFileState, TabSearchState, TabTranslationState } from '../types';
 
@@ -332,6 +333,20 @@ export function useDocumentTabs(toast: ReturnType<typeof useToast>) {
           return;
         }
 
+        if (error instanceof UnsupportedDocumentFileError) {
+          if (error.code === 'LEGACY_DOC') {
+            toast.warning(
+              'فرمت .doc قدیمی پشتیبانی نمی‌شود. لطفاً فایل را به .docx تبدیل کنید.',
+            );
+            return;
+          }
+
+          toast.warning(
+            'فقط فایل‌های Markdown (.md) و Word (.docx) پشتیبانی می‌شوند.',
+          );
+          return;
+        }
+
         toast.error('باز کردن فایل با خطا مواجه شد. لطفاً دوباره تلاش کنید.');
       }
     },
@@ -349,7 +364,19 @@ export function useDocumentTabs(toast: ReturnType<typeof useToast>) {
       for (const file of files) {
         try {
           loaded.push(await readDroppedMarkdownFile(file));
-        } catch {
+        } catch (error) {
+          if (error instanceof UnsupportedDocumentFileError) {
+            if (error.code === 'LEGACY_DOC') {
+              toast.warning(
+                `«${file.name}»: فرمت .doc قدیمی پشتیبانی نمی‌شود. لطفاً به .docx تبدیل کنید.`,
+              );
+              continue;
+            }
+
+            toast.warning(`«${file.name}»: فرمت فایل پشتیبانی نمی‌شود.`);
+            continue;
+          }
+
           toast.error(`خواندن «${file.name}» با خطا مواجه شد.`);
         }
       }

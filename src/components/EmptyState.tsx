@@ -15,12 +15,12 @@ export function EmptyState({
         Persian Markdown Reader
       </div>
       <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-        فایل Markdown خودتان را باز کنید
+        فایل Markdown یا Word خودتان را باز کنید
       </h2>
       <p className="mt-4 max-w-2xl text-base leading-8 text-slate-600 dark:text-slate-300">
         این برنامه برای خواندن مستندات فارسی با ترکیب متن راست به چپ و
-        اصطلاحات فنی انگلیسی بهینه شده است. فایل را با دکمه بالا یا drag &
-        drop باز کنید.
+        اصطلاحات فنی انگلیسی بهینه شده است. فایل Markdown (.md) یا Word (.docx)
+        را با دکمه بالا یا drag & drop باز کنید.
       </p>
       {hasPersistedFileMeta && lastFileName ? (
         <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">

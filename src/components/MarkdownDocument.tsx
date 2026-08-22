@@ -1,7 +1,9 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react';
+import type { Pluggable } from 'unified';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
+import { markdownSanitizeSchema } from '../utils/markdownSanitizeSchema';
 import remarkGfm from 'remark-gfm';
 import { buildMarkdownShellStyle } from '../constants/markdownSettings';
 import type { MarkdownSettings, ThemeMode } from '../types';
@@ -117,7 +119,10 @@ export const MarkdownDocument = memo(function MarkdownDocument({
   direction,
 }: MarkdownDocumentProps) {
   const rehypePlugins = useMemo(
-    () => [rehypeSanitize, rehypeHeadingIds(content)],
+    (): Pluggable[] => [
+      [rehypeSanitize, markdownSanitizeSchema],
+      rehypeHeadingIds(content),
+    ],
     [content],
   );
   const matchCursor = { current: 0 };
