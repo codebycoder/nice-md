@@ -8,7 +8,13 @@ export type TranslationModelId =
   | 'deepseek/deepseek-chat'
   | 'google/gemini-3.1-flash-lite'
   | 'openai/gpt-5-mini'
-  | 'openai/gpt-5.6-luna';
+  | 'openai/gpt-5.6-luna'
+  | 'openai/gpt-6-luna'
+  | 'anthropic/claude-haiku-5.5'
+  | 'deepseek/deepseek-v4.1-flash'
+  | 'qwen/qwen3.8-flash'
+  | 'google/gemini-3.8-flash'
+  | 'openai/gpt-6.1-terra';
 
 export interface TranslationSettings {
   model: TranslationModelId;
