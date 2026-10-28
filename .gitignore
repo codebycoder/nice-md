@@ -16,8 +16,6 @@ tailwind.config.js
 tailwind.config.d.ts
 
 # Environment variables
-.env
-.env.*
 !.env.example
 
 # Logs
@@ -36,7 +34,6 @@ yarn.lock
 .vite/
 
 # Editor / IDE
-.vscode/*
 !.vscode/extensions.json
 .idea/
 *.swp
@@ -51,3 +48,4 @@ Thumbs.db
 coverage/
 *.tgz
 .eslintcache
+config.bat
