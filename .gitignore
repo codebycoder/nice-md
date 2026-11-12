@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 
+.env
 # Build output
 dist/
 dist-ssr/
@@ -48,4 +49,3 @@ Thumbs.db
 coverage/
 *.tgz
 .eslintcache
-config.bat
